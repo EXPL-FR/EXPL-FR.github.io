@@ -143,22 +143,21 @@
 
   /* ------------------------------------------------- reading a face ------- */
 
-  /* Illustrative values on the synthetic faces shipped with the page. They
-     show the shape of the three cases; replace them with a real export when
-     static/data/signatures.json lands.                                      */
+  /* Illustrative values for the case-study faces; replace them with a real
+     export when static/data/signatures.json lands.                          */
   var CASES = [
     { role: "genuine", verdict: "match", tone: "var(--pos)", score: 0.71, rows: [
-      ["cam. angle · a frontal view", 0.026], ["skin feat. · smooth skin", -0.022],
-      ["facial feat. · thick eyebrows", 0.018], ["eyewear · no eyewear", -0.010],
-      ["hairstyle · short hair", 0.004]] },
+      ["hairstyle · a ponytail", 0.031], ["skin feat. · smooth skin", -0.024],
+      ["facial feat. · thick eyebrows", 0.019], ["eyewear · no eyewear", -0.011],
+      ["cam. angle · a frontal view", 0.004]] },
     { role: "imposter", verdict: "non-match", tone: "var(--neg)", score: 0.09, rows: [
-      ["facial hair · a goatee", -0.168], ["hairstyle · a receding hairline", -0.151],
-      ["skin feat. · tanned skin", -0.139], ["hair colour · brown hair", 0.121],
-      ["facial feat. · a broad nose", -0.097]] },
+      ["eyewear · no eyewear", 0.171], ["hair colour · black hair", -0.163],
+      ["facial feat. · full lips", -0.148], ["skin feat. · smooth skin", -0.126],
+      ["makeup · light makeup", -0.094]] },
     { role: "morph", verdict: "morph", tone: "var(--ink-2)", score: 0.42, rows: [
-      ["facial hair · a goatee", -0.114], ["hairstyle · a receding hairline", -0.086],
-      ["skin feat. · tanned skin", -0.079], ["facial feat. · a broad nose", -0.061],
-      ["hair colour · brown hair", 0.048]] }
+      ["eyewear · no eyewear", 0.128], ["facial feat. · a narrow nose", -0.117],
+      ["hair colour · black hair", -0.089], ["skin feat. · tanned skin", 0.074],
+      ["hairstyle · braided hair", 0.052]] }
   ];
 
   function reading() {
