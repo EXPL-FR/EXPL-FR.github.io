@@ -5,19 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>EXPL-FR &middot; Explaining Face Recognition Models via Vision-Language Alignment</title>
 <meta name="description" content="EXPL-FR grounds natural-language explanations in a frozen face recognition model's own embedding space. A ~1M-parameter adapter, trained on face images alone and never on text, turns any written prompt into a direction in FR space. ECCV 2026 Workshops.">
-<link rel="canonical" href="https://expl-fr.github.io/">
+<link rel="canonical" href="https://gurayozgur.github.io/EXPL-FR/">
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="EXPL-FR">
 <meta property="og:title" content="Explaining Face Recognition Models via Vision-Language Alignment">
-<meta property="og:description" content="Unaligned, a prompt and a face verify at 50.29% &mdash; chance. One ~1M-parameter adapter puts them at 94.56%, within 2.88 points of the FR upper bound. ECCV 2026 Workshops.">
-<meta property="og:url" content="https://expl-fr.github.io/">
-<meta property="og:image" content="https://expl-fr.github.io/static/images/og-card.png">
+<meta property="og:description" content="Unaligned, a prompt and a face verify at 50.29%, which is chance. One ~1M-parameter adapter puts them at 94.56%, within 2.88 points of the FR upper bound. ECCV 2026 Workshops.">
+<meta property="og:url" content="https://gurayozgur.github.io/EXPL-FR/">
+<meta property="og:image" content="https://gurayozgur.github.io/EXPL-FR/static/images/og-card.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Explaining Face Recognition Models via Vision-Language Alignment">
 <meta name="twitter:description" content="Explanations read off a frozen face recognition model's own embedding space. ECCV 2026 Workshops.">
-<meta name="twitter:image" content="https://expl-fr.github.io/static/images/og-card.png">
+<meta name="twitter:image" content="https://gurayozgur.github.io/EXPL-FR/static/images/og-card.png">
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23fbfbfa'/%3E%3Cg fill='%234E79A7'%3E%3Crect x='5' y='10' width='2.5' height='6'/%3E%3Crect x='13' y='6' width='2.5' height='10'/%3E%3Crect x='24' y='12' width='2.5' height='4'/%3E%3C/g%3E%3Cg fill='%23E15759'%3E%3Crect x='9' y='16' width='2.5' height='8'/%3E%3Crect x='17' y='16' width='2.5' height='5'/%3E%3Crect x='21' y='16' width='2.5' height='3'/%3E%3C/g%3E%3C/svg%3E">
 
@@ -34,9 +34,10 @@
             {"@type":"Person","name":"Naser Damer"},{"@type":"Person","name":"Fadi Boutros"}],
   "publisher":[{"@type":"Organization","name":"Fraunhofer Institute for Computer Graphics Research IGD"},
                {"@type":"Organization","name":"Technische Universität Darmstadt"}],
-  "datePublished":"2026","isPartOf":"Computer Vision – ECCV 2026 Workshops",
-  "url":"https://expl-fr.github.io/",
-  "codeRepository":"https://github.com/EXPL-FR/EXPL-FR",
+  "datePublished":"2026-08-21","isPartOf":"ECCV 2026 Workshops",
+  "identifier":"arXiv:2608.21486","sameAs":"https://arxiv.org/abs/2608.21486",
+  "url":"https://gurayozgur.github.io/EXPL-FR/",
+  "codeRepository":"https://github.com/gurayozgur/EXPL-FR",
   "license":"https://creativecommons.org/licenses/by-nc-sa/4.0/"
 }
 </script>
@@ -47,12 +48,12 @@
 
 <section class="cine-hero" aria-label="Introduction">
   <div class="cine-bg" aria-hidden="true">
-    <img src="static/images/contact/casia.jpg" width="1400" height="1435" alt="" decoding="async" fetchpriority="high">
+    <img src="static/images/contact/synthetic.jpg" width="1404" height="1457" alt="" decoding="async" fetchpriority="high">
   </div>
   <div class="cine-veil" aria-hidden="true"></div>
   <div class="cine-inner">
     <header class="hero">
-      <p class="venue">Computer Vision &mdash; ECCV 2026 Workshops</p>
+      <p class="venue">ECCV 2026 Workshops</p>
       <h1>Explaining Face Recognition Models via Vision-Language Alignment</h1>
       <p class="authors">
         Guray Ozgur<sup>1,2</sup>, Mustafa Efe Tamyapar<sup>1,2</sup>,
@@ -60,13 +61,13 @@
       </p>
       <p class="affils"><sup>1</sup>Fraunhofer IGD, Darmstadt &nbsp;&middot;&nbsp; <sup>2</sup>Technische Universit&auml;t Darmstadt</p>
       <nav class="pills" aria-label="Paper links">
-        <a class="primary" href="#bibtex">Paper</a>
-        <a href="https://github.com/EXPL-FR/EXPL-FR">Code</a>
+        <a class="primary" href="https://arxiv.org/pdf/2608.21486">Paper</a>
+        <a href="https://github.com/gurayozgur/EXPL-FR">Code</a>
         <a href="static/images/poster.jpg">Poster</a>
       </nav>
       <p class="cine-hook">A deployed face recognition model returns a similarity score and no reason for it.
         <strong>EXPL-FR</strong> reads which <strong>named attribute that score relied upon</strong> directly off the
-        frozen matcher's own embedding space &mdash; not a separate commentator.
+        frozen matcher's own embedding space, not off a separate commentator.
         A ~1M-parameter adapter, trained on face images alone and never on text, turns any written prompt
         into a direction in FR space; cosine similarities to those directions form a face's
         <strong>semantic signature</strong>.</p>
@@ -99,7 +100,7 @@
   <section id="reading" class="slim">
     <h2>Read a Face</h2>
     <p class="lead">Pick a verification pair, then drag the blend slider: the differential signature
-      grows from reference&ndash;reference (flat) toward reference&ndash;compared.</p>
+      grows from reference minus reference (flat) toward reference minus compared.</p>
 
     <div class="panel read" id="read-panel">
       <div class="read-nav" id="read-nav" role="tablist" aria-label="Compared face"></div>
@@ -131,14 +132,16 @@
       <p class="diff-head">Differential signature &middot; <span>reference &minus; <em id="diff-role">genuine</em></span></p>
       <ul class="reasons" id="reasons"></ul>
     </div>
-    <p class="fig-note"><b>Figure 2.</b> Per-image and differential explanations on a DC-Morph case study.
-      Reference&ndash;genuine is near-flat; the morph residual names inherited attributes.</p>
+    <p class="fig-note"><b>Figure 2.</b> Per-image and differential explanations on a morph case.
+      The reference-genuine difference is near-flat; the morph residual names inherited attributes.
+      Faces are synthetic (IDPreturb / UiFace), and the values are illustrative until the signature
+      export is released; no real person appears on this page.</p>
   </section>
 
   <section id="explorer" class="slim">
-    <h2>Signature Explorer</h2>
-    <p class="lead">Interactive view of exported signatures: pick a row, compare two for the signed
-      difference, or look up an attribute in the released vocabulary.</p>
+    <h2 id="exp-title">Signatures</h2>
+    <p class="lead" id="exp-lead">One bar per prompt, read off the FR model's own embedding
+      space.</p>
 
     <div class="panel explorer" id="exp">
       <div class="ctl">
@@ -155,7 +158,8 @@
         <div class="presets" id="presets"></div>
       </div>
       <div class="ask">
-        <label for="ask-in">write an attribute</label>
+        <label for="ask-in">look up an attribute
+          <i>nearest match in the released vocabulary, not live inference</i></label>
         <input id="ask-in" type="text" autocomplete="off" spellcheck="false"
                placeholder="a person wearing glasses">
         <p class="ask-out" id="ask-out"></p>
@@ -175,7 +179,7 @@
   <section id="obstacle">
     <h2>The Obstacle</h2>
     <p class="lead">A VLM and an FR encoder are trained separately. Their embeddings live in unrelated
-      coordinate systems &mdash; cross-encoder verification is at chance until the adapter bridges them.</p>
+      coordinate systems, so cross-encoder verification sits at chance until the adapter bridges them.</p>
 
     <div class="obstacle-stats">
       <div class="ostat">
@@ -345,14 +349,16 @@
 
   <footer class="backmatter" id="bibtex">
     <h2>Citation</h2>
-    <div class="code"><button class="copy" type="button">copy</button><pre>@inproceedings{explfr2026,
-  author    = {Guray Ozgur and
-               Mustafa Efe Tamyapar and
-               Naser Damer and
-               Fadi Boutros},
-  title     = {EXPL-FR: Explaining Face Recognition Models via Vision-Language Alignment},
-  booktitle = {Computer Vision - {ECCV} 2026 Workshops},
-  year      = {2026}
+    <div class="code"><button class="copy" type="button">copy</button><pre>@article{ozgur2026explfr,
+  author  = {Ozgur, Guray and
+             Tamyapar, Mustafa Efe and
+             Damer, Naser and
+             Boutros, Fadi},
+  title   = {{EXPL-FR}: Explaining Face Recognition Models via
+             Vision-Language Alignment},
+  journal = {arXiv preprint arXiv:2608.21486},
+  year    = {2026},
+  note    = {Accepted at the ECCV 2026 Workshops}
 }</pre></div>
 
     <p class="colophon">
@@ -360,7 +366,7 @@
       Technische Universit&auml;t Darmstadt<br>
       Code and adapters licensed <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
       &middot; &copy; 2026 Fraunhofer IGD<br>
-      <a href="https://github.com/EXPL-FR/EXPL-FR">github.com/EXPL-FR/EXPL-FR</a>
+      <a href="https://github.com/gurayozgur/EXPL-FR">github.com/gurayozgur/EXPL-FR</a>
     </p>
   </footer>
 

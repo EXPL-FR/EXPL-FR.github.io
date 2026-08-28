@@ -76,12 +76,12 @@
         var q = pts[i];
         var bob = Math.sin(drift + q.ph) * .012;
 
-        // face embeddings — one fixed frame
+        // face embeddings, one fixed frame
         var fX = cx + sep + q.fx * s, fY = cy + (q.fy + bob) * s;
         x.beginPath(); x.arc(fX, fY, q.w * 1.9, 0, 6.283);
         x.fillStyle = rgbaVar("--pos", .72); x.fill();
 
-        // prompt anchors — their own frame, rotated until the adapter lands them
+        // prompt anchors in their own frame, rotated until the adapter lands them
         var rot = (1 - p) * 0.9;
         var ux = q.ux + (q.ax - q.ux) * p, uy = q.uy + (q.ay - q.uy) * p;
         var rx = ux * Math.cos(rot) - uy * Math.sin(rot);
@@ -106,8 +106,8 @@
       var disp = p < .03 ? LO : p > .97 ? HI : Math.round(v);
       var txt = (p < .03 || p > .97 ? disp.toFixed(2) : String(disp)) + "%";
       if (pct.textContent !== txt) pct.textContent = txt;
-      stage.textContent = p < .04 ? "unaligned — chance"
-        : p > .96 ? "aligned — 2.88 under the FR ceiling" : "aligning";
+      stage.textContent = p < .04 ? "unaligned, at chance"
+        : p > .96 ? "aligned, 2.88 under the FR ceiling" : "aligning";
       fill.style.width = ((v - LO) / (CEIL - LO) * 100) + "%";
     }
 
@@ -143,19 +143,22 @@
 
   /* ------------------------------------------------- reading a face ------- */
 
+  /* Illustrative values on the synthetic faces shipped with the page. They
+     show the shape of the three cases; replace them with a real export when
+     static/data/signatures.json lands.                                      */
   var CASES = [
     { role: "genuine", verdict: "match", tone: "var(--pos)", score: 0.71, rows: [
-      ["hairstyle · a ponytail", 0.031], ["skin feat. · smooth skin", -0.024],
-      ["facial feat. · thick eyebrows", 0.019], ["eyewear · no eyewear", -0.011],
-      ["cam. angle · a frontal view", 0.004]] },
+      ["cam. angle · a frontal view", 0.026], ["skin feat. · smooth skin", -0.022],
+      ["facial feat. · thick eyebrows", 0.018], ["eyewear · no eyewear", -0.010],
+      ["hairstyle · short hair", 0.004]] },
     { role: "imposter", verdict: "non-match", tone: "var(--neg)", score: 0.09, rows: [
-      ["eyewear · no eyewear", 0.171], ["hair colour · black hair", -0.163],
-      ["facial feat. · full lips", -0.148], ["skin feat. · smooth skin", -0.126],
-      ["makeup · light makeup", -0.094]] },
+      ["facial hair · a goatee", -0.168], ["hairstyle · a receding hairline", -0.151],
+      ["skin feat. · tanned skin", -0.139], ["hair colour · brown hair", 0.121],
+      ["facial feat. · a broad nose", -0.097]] },
     { role: "morph", verdict: "morph", tone: "var(--ink-2)", score: 0.42, rows: [
-      ["eyewear · no eyewear", 0.128], ["facial feat. · a narrow nose", -0.117],
-      ["hair colour · black hair", -0.089], ["skin feat. · tanned skin", 0.074],
-      ["hairstyle · braided hair", 0.052]] }
+      ["facial hair · a goatee", -0.114], ["hairstyle · a receding hairline", -0.086],
+      ["skin feat. · tanned skin", -0.079], ["facial feat. · a broad nose", -0.061],
+      ["hair colour · brown hair", 0.048]] }
   ];
 
   function reading() {
@@ -279,7 +282,7 @@
       var m = best(q);
       if (!m) {
         out.innerHTML = '<span class="miss">no prompt in the released vocabulary matches that ' +
-          'closely. Try a concrete attribute &mdash; hair colour, eyewear, facial hair.</span>';
+          'closely. Try a concrete attribute: hair colour, eyewear, facial hair.</span>';
         return;
       }
       var p = data.prompts[m.i];
@@ -396,6 +399,11 @@
 
   function explorer(data) {
     var lay = layout(data.prompts), rows = data.rows;
+    var title = document.getElementById("exp-title"),
+        lead = document.getElementById("exp-lead");
+    if (title) title.textContent = "Signature Explorer";
+    if (lead) lead.textContent = "Pick a row, compare two for the signed difference, or look up " +
+      "an attribute in the released vocabulary.";
     var selA = document.getElementById("rowA"), selB = document.getElementById("rowB"),
         grpB = document.getElementById("grpB"), plot = document.getElementById("plot"),
         tip = document.getElementById("tip"), cap = document.getElementById("cap"),
@@ -526,18 +534,21 @@
     addEventListener("resize", function () { if (!st.table) render(); });
   }
 
+  /* Without static/data/signatures.json there is nothing to explore, so the
+     controls come out and the paper's figure goes in, saying as much.       */
   function noData() {
     var exp = document.getElementById("exp");
     if (!exp) return;
+    var mono = 'font-family:var(--mono);font-size:11.5px;color:var(--ink-3)';
     exp.innerHTML =
       '<div style="padding:.85rem">' +
-      '<p style="font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin:0 0 .7rem">' +
+      '<p style="' + mono + ';margin:0 0 .7rem">' +
       'Explanations at three granularities, from the paper.</p>' +
       '<figure style="margin:0"><img loading="lazy" src="static/images/explanations.png" ' +
       'alt="Identity-wise, per-image and differential explanations."></figure>' +
-      '<p style="font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin:.6rem 0 0">' +
-      'Identity-wise (rows 1&ndash;2), per-image (rows 3&ndash;5) and differential ' +
-      '(rows 6&ndash;8) explanations.</p></div>';
+      '<p style="' + mono + ';margin:.6rem 0 0">' +
+      'Identity-wise (rows 1-2), per-image (rows 3-5) and differential ' +
+      '(rows 6-8) explanations.</p></div>';
   }
 
 
@@ -556,7 +567,7 @@
            "lands as a direction in the FR model's own coordinates." },
     { k: "3 · read", x: 288, y: 193, w: 592, h: 218,
       say: "<b>Signatures.</b> A face goes through the frozen FR model; its cosine similarity to " +
-           "each anchor is one bar of the semantic signature — the explanation, read off the " +
+           "each anchor is one bar of the semantic signature, the explanation read off the " +
            "deployed matcher rather than a commentator on it." }
   ];
 
