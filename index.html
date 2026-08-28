@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EXPL-FR &middot; Explaining Face Recognition Models via Vision-Language Alignment</title>
+<meta name="description" content="EXPL-FR grounds natural-language explanations in a frozen face recognition model's own embedding space. A ~1M-parameter adapter, trained on face images alone and never on text, turns any written prompt into a direction in FR space. ECCV 2026 Workshops.">
+<link rel="canonical" href="https://expl-fr.github.io/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="EXPL-FR">
+<meta property="og:title" content="Explaining Face Recognition Models via Vision-Language Alignment">
+<meta property="og:description" content="Unaligned, a prompt and a face verify at 50.29% &mdash; chance. One ~1M-parameter adapter puts them at 94.56%, within 2.88 points of the FR upper bound. ECCV 2026 Workshops.">
+<meta property="og:url" content="https://expl-fr.github.io/">
+<meta property="og:image" content="https://expl-fr.github.io/static/images/og-card.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Explaining Face Recognition Models via Vision-Language Alignment">
+<meta name="twitter:description" content="Explanations read off a frozen face recognition model's own embedding space. ECCV 2026 Workshops.">
+<meta name="twitter:image" content="https://expl-fr.github.io/static/images/og-card.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23fbfbfa'/%3E%3Cg fill='%234E79A7'%3E%3Crect x='5' y='10' width='2.5' height='6'/%3E%3Crect x='13' y='6' width='2.5' height='10'/%3E%3Crect x='24' y='12' width='2.5' height='4'/%3E%3C/g%3E%3Cg fill='%23E15759'%3E%3Crect x='9' y='16' width='2.5' height='8'/%3E%3Crect x='17' y='16' width='2.5' height='5'/%3E%3Crect x='21' y='16' width='2.5' height='3'/%3E%3C/g%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org","@type":"ScholarlyArticle",
+  "name":"EXPL-FR: Explaining Face Recognition Models via Vision-Language Alignment",
+  "author":[{"@type":"Person","name":"Guray Ozgur"},{"@type":"Person","name":"Mustafa Efe Tamyapar"},
+            {"@type":"Person","name":"Naser Damer"},{"@type":"Person","name":"Fadi Boutros"}],
+  "publisher":[{"@type":"Organization","name":"Fraunhofer Institute for Computer Graphics Research IGD"},
+               {"@type":"Organization","name":"Technische Universität Darmstadt"}],
+  "datePublished":"2026","isPartOf":"Computer Vision – ECCV 2026 Workshops",
+  "url":"https://expl-fr.github.io/",
+  "codeRepository":"https://github.com/EXPL-FR/EXPL-FR",
+  "license":"https://creativecommons.org/licenses/by-nc-sa/4.0/"
+}
+</script>
+</head>
+<body>
+
+<button class="tbtn" id="theme" type="button" aria-label="Switch colour theme" title="Switch colour theme">&#9680;</button>
+
+<section class="cine-hero" aria-label="Introduction">
+  <div class="cine-bg" aria-hidden="true">
+    <img src="static/images/contact/casia.jpg" width="1400" height="1435" alt="" decoding="async" fetchpriority="high">
+  </div>
+  <div class="cine-veil" aria-hidden="true"></div>
+  <div class="cine-inner">
+    <header class="hero">
+      <p class="venue">Computer Vision &mdash; ECCV 2026 Workshops</p>
+      <h1>Explaining Face Recognition Models via Vision-Language Alignment</h1>
+      <p class="authors">
+        Guray Ozgur<sup>1,2</sup>, Mustafa Efe Tamyapar<sup>1,2</sup>,
+        Naser Damer<sup>1,2</sup>, Fadi Boutros<sup>1</sup>
+      </p>
+      <p class="affils"><sup>1</sup>Fraunhofer IGD, Darmstadt &nbsp;&middot;&nbsp; <sup>2</sup>Technische Universit&auml;t Darmstadt</p>
+      <nav class="pills" aria-label="Paper links">
+        <a class="primary" href="#bibtex">Paper</a>
+        <a href="https://github.com/EXPL-FR/EXPL-FR">Code</a>
+        <a href="static/images/poster.jpg">Poster</a>
+      </nav>
+      <p class="cine-hook">A deployed face recognition model returns a similarity score and no reason for it.
+        <strong>EXPL-FR</strong> reads which <strong>named attribute that score relied upon</strong> directly off the
+        frozen matcher's own embedding space &mdash; not a separate commentator.
+        A ~1M-parameter adapter, trained on face images alone and never on text, turns any written prompt
+        into a direction in FR space; cosine similarities to those directions form a face's
+        <strong>semantic signature</strong>.</p>
+    </header>
+  </div>
+</section>
+
+<div class="page wide">
+
+  <section id="method">
+    <h2>Method</h2>
+    <p class="lead">Align the VLM image encoder with a frozen FR encoder on images alone; the text
+      encoder inherits the mapping, so every written prompt becomes an anchor in FR space.</p>
+
+    <div class="panel fig-panel pipe-compact">
+      <div class="pipe" id="pipe">
+        <img src="static/images/pipeline.png" width="994" height="629"
+          alt="EXPL-FR pipeline: frozen VLM text and vision encoders, a frozen FR model, and the trained adapter.">
+      </div>
+      <div class="pipe-steps" id="pipe-steps"></div>
+      <p class="pipe-say" id="pipe-say"></p>
+    </div>
+    <p class="fig-note"><b>Figure 1.</b> The adapter is the only learned component (~1M parameters).</p>
+  </section>
+
+</div><!-- /.page.wide -->
+
+<div class="page">
+
+  <section id="reading" class="slim">
+    <h2>Read a Face</h2>
+    <p class="lead">Pick a verification pair, then drag the blend slider: the differential signature
+      grows from reference&ndash;reference (flat) toward reference&ndash;compared.</p>
+
+    <div class="panel read" id="read-panel">
+      <div class="read-nav" id="read-nav" role="tablist" aria-label="Compared face"></div>
+      <div class="read-top">
+        <div class="faces">
+          <figure class="face-card">
+            <img id="face-ref" src="static/faces/reference.jpg" width="256" height="256" alt="Reference face">
+            <figcaption>Reference</figcaption>
+          </figure>
+          <span class="read-vs" aria-hidden="true">&#8722;</span>
+          <figure class="face-card">
+            <span class="stack"><img class="under" src="static/faces/reference.jpg" alt="" aria-hidden="true"><img id="face-cmp" class="top" src="static/faces/genuine.jpg" width="256" height="256" alt="Compared face"></span>
+            <figcaption id="face-role">Genuine</figcaption>
+          </figure>
+        </div>
+        <div class="read-side">
+          <div class="score">
+            <span class="v" id="ver-score">0.71</span>
+            <span class="l">cosine similarity &middot; <em id="ver-label">match</em></span>
+          </div>
+          <div class="blend">
+            <label for="blend">morph blend</label>
+            <input type="range" id="blend" min="0" max="100" value="100"
+                   aria-label="Blend the reference toward the compared face">
+            <output id="blend-out">100%</output>
+          </div>
+        </div>
+      </div>
+      <p class="diff-head">Differential signature &middot; <span>reference &minus; <em id="diff-role">genuine</em></span></p>
+      <ul class="reasons" id="reasons"></ul>
+    </div>
+    <p class="fig-note"><b>Figure 2.</b> Per-image and differential explanations on a DC-Morph case study.
+      Reference&ndash;genuine is near-flat; the morph residual names inherited attributes.</p>
+  </section>
+
+  <section id="explorer" class="slim">
+    <h2>Signature Explorer</h2>
+    <p class="lead">Interactive view of exported signatures: pick a row, compare two for the signed
+      difference, or look up an attribute in the released vocabulary.</p>
+
+    <div class="panel explorer" id="exp">
+      <div class="ctl">
+        <div class="g"><label for="rowA">signature</label><select id="rowA"></select></div>
+        <div class="g" id="grpB" hidden><label for="rowB">minus</label><select id="rowB"></select></div>
+        <div class="g"><div class="seg" role="group" aria-label="Mode">
+          <button type="button" id="mOne" aria-pressed="true">single</button>
+          <button type="button" id="mDiff" aria-pressed="false">compare</button>
+        </div></div>
+        <div class="g"><div class="seg" role="group" aria-label="View">
+          <button type="button" id="vChart" aria-pressed="true">chart</button>
+          <button type="button" id="vTable" aria-pressed="false">table</button>
+        </div></div>
+        <div class="presets" id="presets"></div>
+      </div>
+      <div class="ask">
+        <label for="ask-in">write an attribute</label>
+        <input id="ask-in" type="text" autocomplete="off" spellcheck="false"
+               placeholder="a person wearing glasses">
+        <p class="ask-out" id="ask-out"></p>
+      </div>
+      <div class="plot" id="plot"><div class="tip" id="tip" role="status" aria-live="polite"></div></div>
+      <div class="tbl-wrap" id="tbl" hidden></div>
+      <div class="exp-foot">
+        <div class="legend" id="legend">
+          <span><i style="background:var(--pos)"></i> above the row's own mean</span>
+          <span><i style="background:var(--neg)"></i> below it</span>
+        </div>
+        <div id="cap"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="obstacle">
+    <h2>The Obstacle</h2>
+    <p class="lead">A VLM and an FR encoder are trained separately. Their embeddings live in unrelated
+      coordinate systems &mdash; cross-encoder verification is at chance until the adapter bridges them.</p>
+
+    <div class="obstacle-stats">
+      <div class="ostat">
+        <span class="oval n neg">50.29%</span>
+        <span class="olbl">unaligned &middot; chance</span>
+      </div>
+      <span class="oarr" aria-hidden="true">&#8594;</span>
+      <div class="ostat hi">
+        <span class="oval n pos">94.56%</span>
+        <span class="olbl">aligned cross-encoder <b>(ours)</b></span>
+      </div>
+      <span class="oarr muted" aria-hidden="true">&middot;</span>
+      <div class="ostat">
+        <span class="oval n">97.44%</span>
+        <span class="olbl">FR self-verification ceiling</span>
+      </div>
+    </div>
+
+    <div class="panel fig-panel">
+      <div class="align-plate">
+        <canvas id="align-canvas"></canvas>
+        <div class="align-hud">
+          <span class="stage" id="align-stage">unaligned</span>
+          <span class="pct" id="align-pct">50.29%</span>
+          <span class="scale"><i id="align-fill"></i></span>
+        </div>
+        <button class="align-replay" id="align-replay" type="button">&#8635; replay</button>
+        <p class="align-key">
+          <span><i class="neg"></i> prompt anchors</span>
+          <span><i class="pos"></i> face embeddings</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="scroll">
+        <table class="verify-tbl">
+          <caption>1:1 verification, mean over LFW, AgeDB-30, CFP-FP, CPLFW, CALFW</caption>
+          <thead><tr><th>Representation pair</th><th class="num">Mean (%)</th></tr></thead>
+          <tbody>
+            <tr><td>FR self-verification <span class="muted">(upper bound)</span></td><td class="num">97.44</td></tr>
+            <tr><td>VLM self-verification</td><td class="num">82.33</td></tr>
+            <tr><td>Aligned-VLM self-verification</td><td class="num">92.58</td></tr>
+            <tr class="dim"><td>Unaligned cross-encoder</td><td class="num">50.29</td></tr>
+            <tr class="hi"><td>Aligned cross-encoder <span class="muted">(ours)</span></td><td class="num">94.56</td></tr>
+            <tr><td>Vocabulary projection, in VLM space</td><td class="num">51.98</td></tr>
+            <tr class="hi"><td>Vocabulary projection, in FR space <span class="muted">(ours)</span></td><td class="num">71.66</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="fig-note">Within <b>2.88 points</b> of the FR ceiling; vocabulary projection
+      gains <b>+19.68</b> when moved from VLM space into FR space.</p>
+  </section>
+
+  <section id="detectability">
+    <h2>What Survives the Mapping</h2>
+    <p class="lead">Eyewear, hair colour and facial hair come through into FR space; distance, scene
+      context and lighting are discounted.</p>
+
+    <div class="panel fig-panel" id="detect-fig">
+      <div id="detect-mount">
+        <img loading="lazy" src="static/images/detectability.png" width="1572" height="594"
+          alt="Label-free detectability per concept in VLM space versus FR space.">
+      </div>
+    </div>
+    <p class="fig-note"><b>Figure 3.</b> The 100 most detectable prompts separate identities better than
+      the full vocabulary. <span id="detect-note"></span></p>
+  </section>
+
+</div><!-- /.page -->
+
+<div class="page">
+
+  <section id="auditing" class="slim">
+    <h2>Auditing Without Labels</h2>
+    <p class="lead">Sec.&nbsp;3.5 builds the same FR-space attribute axis three ways, with decreasing
+      supervision. Right column: cost of extending the audit by one new attribute.</p>
+
+    <div class="panel s1-fig" id="s1-panel">
+      <p class="s1-head"><b>Supplementary Fig. S1.</b> Supervision levels for attribute-level FR auditing.</p>
+
+      <div class="s1-row">
+        <div class="s1-side">
+          <strong>(1) Labels</strong>
+          <span>prior practice</span>
+        </div>
+        <div class="s1-flow">
+          <span class="chip warm">attribute labels</span>
+          <span class="op">+</span>
+          <span class="chip warm">face images</span>
+          <span class="op arr">&#8594;</span>
+          <span class="chip out">group-mean axis in FR space</span>
+        </div>
+        <div class="s1-cost">
+          <span class="cost-lbl">re-annotate the dataset</span>
+          <span class="cost-bar"><i style="width:100%"></i></span>
+        </div>
+      </div>
+
+      <div class="s1-row">
+        <div class="s1-side">
+          <strong>(2) VLM-proxy</strong>
+          <span>no labels</span>
+        </div>
+        <div class="s1-flow">
+          <span class="chip cool">written prompt</span>
+          <span class="op">+</span>
+          <span class="chip warm">unlabeled images</span>
+          <span class="op">+</span>
+          <span class="chip warm">VLM ranking</span>
+          <span class="op arr">&#8594;</span>
+          <span class="chip out">pseudo group-mean axis</span>
+        </div>
+        <div class="s1-cost">
+          <span class="cost-lbl">re-rank the collection</span>
+          <span class="cost-bar"><i style="width:58%"></i></span>
+        </div>
+      </div>
+
+      <div class="s1-row ours">
+        <div class="s1-side">
+          <strong>(3) Ours</strong>
+          <span>prompts only</span>
+        </div>
+        <div class="s1-flow">
+          <span class="chip cool">written prompt</span>
+          <span class="op">+</span>
+          <span class="chip ours">adapter <i>g</i><sub>&theta;</sub></span>
+          <span class="op arr blue">&#8594;</span>
+          <span class="chip ours out">prompt axis (no images)</span>
+        </div>
+        <div class="s1-cost">
+          <span class="cost-lbl blue">write one sentence</span>
+          <span class="cost-bar"><i class="blue" style="width:14%"></i></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="audit-gallery">
+      <div class="tabs" id="audit-tabs" role="tablist" aria-label="Audit figure">
+        <button type="button" role="tab" id="tab-rfw" aria-selected="true" aria-controls="audit-view">Model selection (RFW)</button>
+        <button type="button" role="tab" id="tab-gan" aria-selected="false" aria-controls="audit-view">Model diagnosis (GAN-Control)</button>
+      </div>
+      <div class="audit-viewport" id="audit-view" role="tabpanel">
+        <img id="audit-img" loading="lazy" src="static/images/selection_rfw.png" width="2230" height="613"
+          alt="Label-free ethnicity dependence against real ten-fold verification error.">
+      </div>
+      <p class="expl-caption" id="audit-caption">
+        <b>Figure 4.</b> Label-free dependence vs. real verification error
+        (<span style="font-family:var(--mono)">&tau; = 0.92</span>).
+      </p>
+    </div>
+
+    <div class="panel">
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Finding</th><th class="num">Statistic</th><th>Against</th></tr></thead>
+          <tbody>
+            <tr><td>Ethnicity dependence vs. per-group error (RFW)</td><td class="num">&tau; = 0.92</td><td>real ten-fold verification error</td></tr>
+            <tr><td>Matched-axis sensitivity vs. per-attribute EER (GAN-Control)</td><td class="num">&rho; = 0.90 / 0.83 / 0.95</td><td>labeled / VLM-proxy / prompt-only axes</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer class="backmatter" id="bibtex">
+    <h2>Citation</h2>
+    <div class="code"><button class="copy" type="button">copy</button><pre>@inproceedings{explfr2026,
+  author    = {Guray Ozgur and
+               Mustafa Efe Tamyapar and
+               Naser Damer and
+               Fadi Boutros},
+  title     = {EXPL-FR: Explaining Face Recognition Models via Vision-Language Alignment},
+  booktitle = {Computer Vision - {ECCV} 2026 Workshops},
+  year      = {2026}
+}</pre></div>
+
+    <p class="colophon">
+      Fraunhofer Institute for Computer Graphics Research IGD, Darmstadt &middot;
+      Technische Universit&auml;t Darmstadt<br>
+      Code and adapters licensed <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
+      &middot; &copy; 2026 Fraunhofer IGD<br>
+      <a href="https://github.com/EXPL-FR/EXPL-FR">github.com/EXPL-FR/EXPL-FR</a>
+    </p>
+  </footer>
+
+</div>
+
+<dialog id="lb"><button class="x" type="button" aria-label="Close">&#10005;</button><img alt=""></dialog>
+<script src="app.js"></script>
+</body>
+</html>
